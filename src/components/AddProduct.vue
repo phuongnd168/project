@@ -121,6 +121,7 @@ import Button from "primevue/button";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import { onMounted } from "vue";
+import FileUpload from "primevue/fileupload";
 const loading = ref(false);
 
 import { useToast } from "primevue/usetoast";
@@ -140,9 +141,10 @@ onMounted(async () => {
         "Content-Type": "application/json",
       },
     });
-
-    const categoriesValue = await categoriesData.data;
-    categories.value = categoriesValue.Data;
+    if (categoriesData.data.StatusCode === 200) {
+      const categoriesValue = await categoriesData.data;
+      categories.value = categoriesValue.Data;
+    }
   } catch (error) {
     console.error("Error fetching categories:", error);
     throw error;
@@ -226,7 +228,7 @@ const onSubmit = () => {
           listCategory,
           img: data.secure_url,
         });
-        if (result.data) {
+        if (result.data.StatusCode === 201) {
           sessionStorage.setItem("addProduct", true);
           router.push("/manager-products");
         }

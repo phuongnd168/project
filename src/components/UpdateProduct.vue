@@ -120,7 +120,7 @@ import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { useRouter, useRoute } from "vue-router";
 import { onMounted } from "vue";
-
+const check = ref(null);
 const toast = useToast();
 const CLOUD_NAME = "di0xgrb1e";
 const UPLOAD_PRESET = "upload_preset";
@@ -169,15 +169,17 @@ onMounted(async () => {
       "Content-Type": "application/json",
     },
   });
-  const { Data } = await product.data;
-  if (Data) {
-    nameVi.value = Data.NameVi;
-    nameEn.value = Data.NameEn;
-    price.value = Data.Price;
-    quantity.value = Data.Quantity;
-    categoriesSelected.value = Data.CategoryId;
-    previewImage.value = Data.Img;
-    setFieldValue("img", Data.Img);
+  if (product.data.StatusCode === 200) {
+    const { Data } = await product.data;
+    if (Data) {
+      check.value = true;
+      nameVi.value = Data.NameVi;
+      nameEn.value = Data.NameEn;
+      price.value = Data.Price;
+      quantity.value = Data.Quantity;
+      categoriesSelected.value = Data.CategoryId;
+      previewImage.value = Data.Img;
+    }
   }
 
   const categoriesData = await axios.get(`http://localhost:5097/api/categories`, {
@@ -186,9 +188,10 @@ onMounted(async () => {
       "Content-Type": "application/json",
     },
   });
-
-  const categoriesValue = await categoriesData.data;
-  categories.value = categoriesValue.Data;
+  if (categoriesData.data.StatusCode === 200) {
+    const categoriesValue = await categoriesData.data;
+    categories.value = categoriesValue.Data;
+  }
 });
 
 const handleImageUpload = (e) => {
@@ -196,16 +199,19 @@ const handleImageUpload = (e) => {
 
   setFieldValue("img", file);
 
-  if (file) previewImage.value = URL.createObjectURL(file);
-  else previewImage.value = null;
+  if (file) {
+    check.value = false;
+    previewImage.value = URL.createObjectURL(file);
+  } else previewImage.value = null;
 };
 
 const onSubmit = () => {
   handleSubmit(
     async (values) => {
       loading.value = true;
+      console.log(values);
       try {
-        if (values.img.name) {
+        if (values.img?.name) {
           const formData = new FormData();
           formData.append("file", values.img);
           formData.append("upload_preset", UPLOAD_PRESET);
@@ -230,7 +236,7 @@ const onSubmit = () => {
             listCategory: values.categoriesSelected,
             img: secure_url,
           });
-          if (result.data) {
+          if (result.data.StatusCode === 200) {
             toast.add({
               severity: "success",
               summary: "Thành công",
@@ -252,7 +258,7 @@ const onSubmit = () => {
             listCategory: values.categoriesSelected,
             img: previewImage.value,
           });
-          if (result.data) {
+          if (result.data.StatusCode === 200) {
             toast.add({
               severity: "success",
               summary: "Thành công",

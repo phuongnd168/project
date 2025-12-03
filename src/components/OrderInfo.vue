@@ -12,6 +12,7 @@ import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import RadioButton from "primevue/radiobutton";
 import Button from "primevue/button";
+import axios from "axios";
 import router from "@/router";
 const loading = ref(false);
 const getBill = ref("noReceipt");
@@ -185,7 +186,7 @@ async function OrderComplete() {
     });
     const dataPost = [];
     carts.forEach((cart) => {
-      dataPost.carts.push({
+      dataPost.push({
         id: cart.id,
         count: cart.count,
         price: cart.price,
@@ -198,38 +199,38 @@ async function OrderComplete() {
 
     const value = dataPost.map((x) => JSON.stringify(x)).join(",");
 
-    const responsePost = await fetch(`http://localhost:5097/api/orderProduct`, {
-      method: "POST",
+    const responsePost = await axios.post(`http://localhost:5097/api/orderProduct`, {
       headers: {
+        Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        userId: 8,
-        products: value,
-      }),
+
+      userId: 8,
+      products: value,
     });
-    if (!responsePost.ok) {
-      throw new Error(`Error: ${responsePost.status}`);
+
+    const responsePatch = await axios.patch(
+      `http://localhost:5097/api/products`,
+
+      {
+        dataPatch,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (responsePost.data.StatusCode === 201 && responsePatch.data.StatusCode === 200) {
+      sessionStorage.removeItem("carts");
+      sessionStorage.setItem("order", true);
+      router.push({ name: "Home" });
     }
-    const responsePatch = await fetch(`http://localhost:5097/api/products`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataPatch),
-    });
-    if (!responsePatch.ok) {
-      throw new Error(`Error: ${responsePatch.status}`);
-    }
-    sessionStorage.removeItem("carts");
-    sessionStorage.setItem("order", true);
   } catch (error) {
     console.error("Failed to update product:", error);
   } finally {
     loading.value = false;
   }
-
-  router.push({ name: "Home" });
 }
 function goToHome() {
   router.push({ name: "Home" });

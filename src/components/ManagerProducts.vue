@@ -106,8 +106,11 @@ onMounted(async () => {
         "Content-Type": "application/json",
       },
     });
-    const productsValue = await productsData.data;
-    products.value = productsValue;
+
+    if (productsData.data.StatusCode === 200) {
+      const productsValue = await productsData.data;
+      products.value = productsValue.Data;
+    }
 
     const categoriesData = await axios.get(`http://localhost:5097/api/categories`, {
       headers: {
@@ -115,9 +118,10 @@ onMounted(async () => {
         "Content-Type": "application/json",
       },
     });
-
-    const categoriesValue = await categoriesData.data;
-    categories.value = categoriesValue.Data;
+    if (categoriesData.data.StatusCode === 200) {
+      const categoriesValue = await categoriesData.data;
+      categories.value = categoriesValue.Data;
+    }
 
     products.value.forEach((product) => {
       if (product.CategoryId && product.CategoryId.length > 0) {
@@ -159,9 +163,10 @@ const confirmDelete = (id) => {
     },
     accept: async () => {
       try {
-        await axios.delete(`http://localhost:5097/api/products/${id}`);
-
-        products.value = products.value.filter((p) => p.Id !== id);
+        const result = await axios.delete(`http://localhost:5097/api/products/${id}`);
+        if (result.data.StatusCode === 200) {
+          products.value = products.value.filter((p) => p.Id !== id);
+        }
       } catch (error) {
         console.error(error);
         alert("Xóa thất bại!");

@@ -79,7 +79,9 @@ onMounted(async () => {
           },
         });
 
-        return response.data;
+        if (response.data.StatusCode === 200) {
+          return response.data;
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
         throw error;
@@ -95,7 +97,9 @@ onMounted(async () => {
           },
         });
 
-        return response.data;
+        if (response.data.StatusCode === 200) {
+          return response.data;
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
         throw error;
@@ -111,17 +115,21 @@ onMounted(async () => {
           },
         });
 
-        return response.data;
+        if (response.data.StatusCode === 200) {
+          return response.data;
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
         throw error;
       }
     };
     const categoriesValue = await getCategories();
+
     categories.value = categoriesValue.Data;
 
     const productsValue = await getProducts();
-    products.value = productsValue;
+
+    products.value = productsValue.Data;
 
     const orders = await getOrders();
 
